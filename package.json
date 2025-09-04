@@ -1,0 +1,22 @@
+{
+  "name": "i18n-llm",
+  "version": "1.0.0",
+  "description": "DevOps tool to (incrementally) translate locale files using an LLM.",
+  "author": "Joost Lubach <joostlubach@gmail.com>",
+  "license": "MIT",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check": "tsc -p . --noEmit",
+    "lint": "eslint src --ext ts,tsx",
+    "test": "NODE_ENV=test DATA_ENV=test jest"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+  "ytil": "workspace:*"
+  }
+}
