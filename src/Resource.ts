@@ -1,43 +1,109 @@
 import * as fs from 'fs/promises'
+import { cloneDeep } from 'lodash'
 import * as path from 'path'
 import * as yaml from 'yaml'
 import { memoized, objectEntries, objectKeys } from 'ytil'
+import { Bundle } from './Bundle'
+import config from './config'
+import { ResourceFormat, Translation, Translations } from './types'
 
 export class Resource {
 
   private constructor(
-    public readonly path: string,
-    public readonly mimeType: string,
+    private readonly bundle: Bundle,
+    public readonly relpath: string,
+    public readonly format: ResourceFormat,
     private readonly translations: Translations,
-    options: ResourceOptions
-  ) {
-    this.label = options.label ?? path
+  ) {}
+
+  public clone() {
+    return new Resource(
+      this.bundle,
+      this.relpath,
+      this.format,
+      cloneDeep(this.translations)
+    )
   }
 
-  public readonly label: string
+  // #region Factory
 
-  public static async load(filePath: string, options: ResourceOptions = {}): Promise<Resource> {
-    const raw = await fs.readFile(filePath, 'utf8')
-    const ext = path.extname(filePath).toLowerCase()
+  public static empty(bundle: Bundle, path: string, format: ResourceFormat = config.defaultFormat) {
+    return new Resource(bundle, path, format, {})
+  }
+
+  public static async load(bundle: Bundle, name: string, fromPath: string): Promise<Resource> {
+    const raw = await fs.readFile(fromPath, 'utf8')
+    const ext = path.extname(fromPath).toLowerCase()
     if (ext === '.yml' || ext === '.yaml') {
-      const content = yaml.parse(raw) as Translations
-      return new Resource(filePath, 'application/x-yaml', content, options)
+      const content = (yaml.parse(raw) ?? {}) as Translations
+      return new Resource(bundle, name, ResourceFormat.YAML, content)
     } else if (ext === '.json') {
-      const content = JSON.parse(raw) as Translations
-      return new Resource(filePath, 'application/json', content, options)
+      const content = (JSON.parse(raw) ?? {}) as Translations
+      return new Resource(bundle, name, ResourceFormat.JSON, content)
     } else {
       throw new Error(`Unsupported file extension: ${ext}`)
     }
   }
 
-  public entries() {
+  // #endregion
+
+  // #region Accessors
+
+  public flatKeys() {
+    return objectKeys(this.flattened)
+  }
+
+  public flatEntries() {
     return objectEntries(this.flattened)
   }
 
-  @memoized
-  public get keys() {
-    return objectKeys(this.flattened)
+  // #endregion
+
+  // #region Get & set
+
+  public get(key: string) {
+    return this.flattened[key]
   }
+
+  public set(key: string, value: Translation) {
+    const keys = key.split('.')
+    let current: Translations = this.translations
+
+    for (let i = 0; i < keys.length; i++) {
+      const k = keys[i]
+
+      if (i === keys.length - 1) {
+        current[k] = value
+      } else {
+        if (typeof current[k] !== 'object' || current[k] === null) {
+          current[k] = {}
+        }
+        current = current[k] as Translations
+      }
+    }
+  }
+
+  public remove(key: string) {
+    const keys = key.split('.')
+    let current: Translations = this.translations
+
+    for (let i = 0; i < keys.length; i++) {
+      const k = keys[i]
+
+      if (i === keys.length - 1) {
+        delete current[k]
+      } else {
+        if (typeof current[k] !== 'object' || current[k] === null) {
+          return
+        }
+        current = current[k] as Translations
+      }
+    }
+  }
+
+  // #endregion
+
+  // #region Flattening
 
   @memoized
   public get flattened() {
@@ -59,13 +125,30 @@ export class Resource {
     return flattened
   }
 
+  // #endregion
+
+  // #region Writing
+
+  public async write() {
+    const targetPath = path.join(this.bundle.bundlePath, this.relpath)
+    await fs.mkdir(path.dirname(targetPath), {recursive: true})
+
+    let data: string
+    if (this.format === ResourceFormat.YAML) {
+      data = yaml.stringify(this.translations)
+    } else if (this.format === ResourceFormat.JSON) {
+      data = JSON.stringify(this.translations, null, 2) + '\n'
+    } else {
+      throw new Error(`Unsupported format: ${this.format}`)
+    }
+
+    await fs.writeFile(targetPath, data, 'utf8')
+  }
+
+  // #endregion
 
 }
 
 export interface ResourceOptions {
   label?: string
-}
-
-export type Translations = {
-  [key: string]: string | Translations
 }
