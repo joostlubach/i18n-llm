@@ -45,6 +45,10 @@ export class Translator {
       dryrun = false
     } = options
 
+    if (keys.length === 0) {
+      return new Patch()
+    }
+
     const model = config.openai.model
     const modelParameters = config.openai.model_parameters
     const instructions = this.buildInstructions(
@@ -79,8 +83,13 @@ export class Translator {
     }
   }
 
-  private buildInstructions(purpose: string | undefined, notes: string[] | undefined) {
+  private buildInstructions(
+    purpose: string | undefined,
+    notes: string[] | undefined
+  ) {
     return INSTRUCTIONS
+      .replace('##SOURCELANG##', this.source.language.name)
+      .replace('##TARGETLANG##', this.target.language.name)
       .replace('##PURPOSE##', purpose == null ? '' : `The purpose of the application is defined as: ${purpose}.`)
       .replace('##NOTES##', notes?.map(it => `- ${it}`).join('\n') ?? '')
   }
