@@ -1,5 +1,5 @@
 import * as fs from 'fs/promises'
-import { cloneDeep } from 'lodash'
+import { cloneDeep, uniq } from 'lodash'
 import * as path from 'path'
 import * as yaml from 'yaml'
 import { memoized, objectEntries, objectKeys } from 'ytil'
@@ -59,6 +59,27 @@ export class Resource {
 
   // #endregion
 
+  // #region Roots
+
+  private _roots: string[] | undefined = undefined
+  public get roots(): readonly string[] {
+    return this._roots ??= this.deriveRoots()
+  }
+
+  private deriveRoots() {
+    return uniq(this.flatKeys().map(it => it.split('.')[0])).sort()
+  }
+
+  public addRoot(root: string) {
+    const roots = this._roots ??= this.deriveRoots()
+    if (!roots.includes(root)) {
+      roots.push(root)
+    }
+    this._roots = roots.sort()
+  }
+
+  // #endregion
+
   // #region Get & set
 
   public get(key: string) {
@@ -98,6 +119,17 @@ export class Resource {
         }
         current = current[k] as Translations
       }
+    }
+  }
+
+  // #endregion
+
+  // #region Merge
+
+  public mergeDefaultsFrom(other: Resource) {
+    for (const [key, value] of other.flatEntries()) {
+      if (this.get(key) != null) { continue }
+      this.set(key, value)
     }
   }
 

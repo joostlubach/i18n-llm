@@ -31,34 +31,50 @@ export class Patch {
 
   // #region Application
 
-  public apply(bundle: Bundle) {
+  public apply(bundle: Bundle, source?: Bundle) {
     for (const mod of this._modifications) {
       switch (mod.type) {
-        case 'set':
-          bundle.set(mod.key, mod.value)
-          break
-        case 'remove':
-          bundle.remove(mod.key)
-          break
+        case 'set': this.executeSet(bundle, mod, source); break
+        case 'remove': this.executeRemove(bundle, mod); break
       }
     }
+  }
+
+  private executeSet(bundle: Bundle, mod: SetModification, source?: Bundle) {
+    if (source != null) {
+      // If the key to set has a root that exists in some resource in the source bundle, but this resource
+      // does not exist in the target bundle, add an empty one. This ensure that we don't get a new resource
+      // for every new key root, but the target bundle's anatomy follows the source bundle's.
+
+      const root = mod.key.split('.')[0]
+      const targetResource = bundle.resources.find(it => it.roots.includes(root))
+      const sourceResource = source.resources.find(it => it.roots.includes(root))
+
+      if (targetResource == null && sourceResource != null) {
+        const resource = bundle.addEmptyResource(sourceResource.relpath, sourceResource.format)
+        resource.addRoot(root)
+      }
+    }
+
+    bundle.set(mod.key, mod.value)
+  }
+
+  private executeRemove(bundle: Bundle, mod: RemoveModification) {
+    bundle.remove(mod.key)
   }
 
   // #endregion
 
   // #region Dump
 
-  public dump(stream: NodeJS.WritableStream = process.stdout) {
+  public dump(stream: NodeJS.WritableStream = process.stdout, formatLine: (line: string) => string = line => line) {
     for (const mod of this._modifications) {
       switch (mod.type) {
         case 'set':
-          stream.write(`+ ${mod.key} = ${JSON.stringify(mod.value)}\n`)
-          break
-        case 'translate':
-          stream.write(`~ ${mod.key} = ${JSON.stringify(mod.from.value)} (from ${mod.from.language})\n`)
+          stream.write(formatLine(`~ ${mod.key} = ${JSON.stringify(mod.value)}`))
           break
         case 'remove':
-          stream.write(`- ${mod.key}\n`)
+          stream.write(formatLine(`- ${mod.key}`))
           break
       }
     }

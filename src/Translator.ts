@@ -21,11 +21,8 @@ export class Translator {
 
   private readonly openai = createOpenAI()
 
-  public async translate(options: TranslateOptions = {}): Promise<Patch> {
-    const {
-      keys = this.source.flatKeys(),
-      batchSize
-    } = options
+  public async translate(keys: string[], options: TranslateOptions = {}): Promise<Patch> {
+    const {batchSize} = options
 
     const patch = new Patch()
     
@@ -45,6 +42,7 @@ export class Translator {
       purpose,
       notes,
       modifyStream,
+      dryrun = false
     } = options
 
     const model = config.openai.model
@@ -55,23 +53,29 @@ export class Translator {
     )
     const input = this.buildInput(keys)
 
-    const stream = this.openai.responses.stream(merge({
-      model,
-
-      instructions,
-      input,
-
-      text: {
-        format: responseFormat
+    if (dryrun) {
+      for (const key of keys) {
+        patch.set(key, this.source.get(key) + ` (but imagine this translated to ${this.target.language.name})`)
       }
-    }, modelParameters))
+    } else {
+      const stream = this.openai.responses.stream(merge({
+        model,
 
-    modifyStream?.(stream)
+        instructions,
+        input,
 
-    const response = await stream.finalResponse()
-    const translations = response.output_parsed?.translations ?? []
-    for (const translation of translations) {
-      patch.set(translation.key, translation.translation)
+        text: {
+          format: responseFormat
+        }
+      }, modelParameters))
+
+      modifyStream?.(stream)
+
+      const response = await stream.finalResponse()
+      const translations = response.output_parsed?.translations ?? []
+      for (const translation of translations) {
+        patch.set(translation.key, translation.translation)
+      }
     }
   }
 
@@ -127,5 +131,7 @@ export interface TranslateOptions {
 
   batchSize?: number
   modifyStream?: (stream: ResponseStream) => void
+
+  dryrun?: boolean
 }
 export type ResponseStream = ReturnType<ReturnType<typeof createOpenAI>['responses']['stream']>

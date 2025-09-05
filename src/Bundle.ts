@@ -4,8 +4,10 @@ import { glob } from 'glob-promise'
 import * as path from 'path'
 import { memoized, objectEntries, objectKeys } from 'ytil'
 import { Language } from './Language'
+import { Patch } from './Patch'
 import { Resource } from './Resource'
 import { TranslateOptions, Translator } from './Translator'
+import config from './config'
 import { ResourceFormat, Translation } from './types'
 
 export class Bundle {
@@ -86,8 +88,12 @@ export class Bundle {
     return resource
   }
 
-  public addEmptyResource(name: string, format?: ResourceFormat): Resource {
-    const resource = Resource.empty(this, name, format)
+  public addEmptyResource(nameOrRelpath: string, format?: ResourceFormat): Resource {
+    format ??= this.resources.length > 0 ? this.resources[0].format : config.defaultFormat
+    
+    const extension = format === ResourceFormat.YAML ? 'yml' : 'json'
+    const relpath = nameOrRelpath.includes('.') ? nameOrRelpath : `${nameOrRelpath}.${extension}`
+    const resource = Resource.empty(this, relpath, format)
     return this.addResource(resource)
   }
 
@@ -122,12 +128,14 @@ export class Bundle {
   }
 
   public set(key: string, value: Translation) {
-    let resource = this.resources.find(it => it.flatKeys().includes(key))
-    if (resource == null) {
-      resource = this.addEmptyResource('all')
-    } else {
-      resource.set(key, value)
-    }
+    const root = key.split('.')[0]
+
+    // Find the resource that contains this root.
+    let resource = this.resources.find(it => it.roots.includes(root))
+
+    // If not found, create a new resource for it.
+    resource ??= this.addEmptyResource(root)
+    resource.set(key, value)
   }
 
   public remove(key: string) {
@@ -136,6 +144,22 @@ export class Bundle {
     }
   }
 
+  // #endregion
+
+  // #region Merge
+
+  public mergeDefaultsFrom(other: Bundle) {
+    for (const source of other.resources) {
+      let target = this.resources.find(it => it.relpath === source.relpath)
+      if (target == null) {
+        target = Resource.empty(this, source.relpath, source.format)
+        this._resources.push(target)
+      }
+
+      target.mergeDefaultsFrom(source)
+    }
+  }
+  
   // #endregion
 
   // #region Diffing & translating
@@ -147,10 +171,13 @@ export class Bundle {
     const theirKeys = source.flatKeys()
     const ourKeys = this.flatKeys()
 
-    const patch = await translator.translate({
-      keys: incremental ? theirKeys.filter(it => !ourKeys.includes(it)) : undefined,
-      ...rest
-    })
+
+    let keys = incremental ? theirKeys.filter(it => !ourKeys.includes(it)) : ourKeys
+    if (options.filter != null) {
+      keys = keys.filter(it => options.filter?.test(it))
+    }
+
+    const patch = await translator.translate(keys, rest)
 
     const keysToRemove = ourKeys.filter(it => !theirKeys.includes(it))
     for (const key of keysToRemove) {
@@ -158,7 +185,9 @@ export class Bundle {
     }
     
     const clone = this.clone()
-    patch.apply(clone)
+    options.onPreApply?.(clone, patch)
+    patch.apply(clone, source)
+    options.onPostApply?.(clone, patch)
     return clone
   }
 
@@ -174,13 +203,13 @@ export class Bundle {
 
   // #region Dump
 
-  public dump(stream: NodeJS.WritableStream = process.stdout) {
+  public dump(stream: NodeJS.WritableStream = process.stdout, formatLine: (line: string) => string = line => line) {
     for (const resource of this.resources) {
-      stream.write(chalk`{bold.underline ${resource.relpath}}\n`)
+      stream.write(formatLine(chalk`{bold.underline ${resource.relpath}}`))
       for (const [key, value] of resource.flatEntries()) {
-        stream.write(`  ${key} = ${JSON.stringify(value)}\n`)
+        stream.write(formatLine(`  ${key} = ${JSON.stringify(value)}`))
       }
-      stream.write('\n')
+      stream.write(formatLine(''))
     }
   }
 
@@ -190,4 +219,8 @@ export class Bundle {
 
 export interface TranslateFromOptions extends Omit<TranslateOptions, 'keys'> {
   incremental?: boolean
+  filter?: RegExp
+  
+  onPreApply?: (bundle: Bundle, patch: Patch) => void
+  onPostApply?: (bundle: Bundle, patch: Patch) => void
 }
