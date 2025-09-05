@@ -47,12 +47,13 @@ export class Patch {
       // for every new key root, but the target bundle's anatomy follows the source bundle's.
 
       const root = mod.key.split('.')[0]
-      const targetResource = bundle.resources.find(it => it.roots.includes(root))
       const sourceResource = source.resources.find(it => it.roots.includes(root))
-
-      if (targetResource == null && sourceResource != null) {
-        const resource = bundle.addEmptyResource(sourceResource.relpath, sourceResource.format)
-        resource.addRoot(root)
+      if (sourceResource != null) {
+        let targetResource = bundle.resources.find(it => it.relpath === sourceResource.relpath)
+        if (targetResource == null) {
+          targetResource = bundle.addEmptyResource(sourceResource.relpath, sourceResource.format)
+        }
+        targetResource.addRoot(root)
       }
     }
 

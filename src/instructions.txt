@@ -20,7 +20,8 @@ Translate only the items in ITEMS TO TRANSLATE. The CONTEXT list is passed along
 Notes:
 
 ##NOTES##
-- Important: Preserve interpolation placeholders as-is. They are formatted using a double brace (`{{...}}`).
+- Preserve interpolation placeholders as-is. They are formatted using a double brace (`{{...}}`).
+- Preserve URLs and tag content as-is. Basically everything technical should remain the same.
 
 Context:
 

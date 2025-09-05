@@ -168,18 +168,17 @@ export class Bundle {
     const translator = new Translator(source, this)
     const {incremental = true, ...rest} = options
 
-    const theirKeys = source.flatKeys()
-    const ourKeys = this.flatKeys()
+    const sourceKeys = source.flatKeys()
+    const targetKeys = this.flatKeys()
 
-
-    let keys = incremental ? theirKeys.filter(it => !ourKeys.includes(it)) : ourKeys
+    let keys = incremental ? sourceKeys.filter(it => !targetKeys.includes(it)) : targetKeys
     if (options.filter != null) {
       keys = keys.filter(it => options.filter?.test(it))
     }
 
     const patch = await translator.translate(keys, rest)
 
-    const keysToRemove = ourKeys.filter(it => !theirKeys.includes(it))
+    const keysToRemove = targetKeys.filter(it => !sourceKeys.includes(it))
     for (const key of keysToRemove) {
       patch.remove(key)
     }
