@@ -1,4 +1,4 @@
-import chalk from 'chalk'
+import chalk from 'chalk-template'
 import * as fs from 'fs/promises'
 import { glob } from 'glob-promise'
 import * as path from 'path'

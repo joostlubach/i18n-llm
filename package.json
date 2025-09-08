@@ -17,7 +17,7 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "chalk": "^3.0",
+    "chalk-template": "^1.1.0",
     "glob-promise": "^6.0.7",
     "openai": "^5.19.1",
     "tiktoken": "^1.0.22",
