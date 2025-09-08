@@ -14,7 +14,7 @@
     "test": "NODE_ENV=test DATA_ENV=test jest"
   },
   "devDependencies": {
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.2"
   },
   "dependencies": {
     "chalk-template": "^1.1.0",
