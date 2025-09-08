@@ -22,9 +22,3 @@ Notes:
 ##NOTES##
 - Preserve interpolation placeholders as-is. They are formatted using a double brace (`{{...}}`).
 - Preserve URLs and tag content as-is. Basically everything technical should remain the same.
-
-Context:
-
-Below is the full source locale bundle, for context. Note that you don't need to translate all of these.
-
-##BUNDLE##
