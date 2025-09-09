@@ -1,4 +1,4 @@
-import { Bundle } from 'i18n-llm'
+import { Bundle } from './Bundle'
 import { LanguageCode } from './Language'
 import { Translation } from './types'
 

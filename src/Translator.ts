@@ -1,10 +1,11 @@
 import * as fs from 'fs'
-import { Bundle } from 'i18n-llm'
 import { merge } from 'lodash'
 import { makeParseableTextFormat } from 'openai/lib/parser'
 import * as path from 'path'
 import { enumerateBatches } from 'ytil'
 import { z } from 'zod'
+
+import { Bundle } from './Bundle'
 import { Patch } from './Patch'
 import config from './config'
 import { createOpenAI } from './openai'
