@@ -15,10 +15,13 @@
     }
   },
   "scripts": {
-    "build": "pnpm clean && pnpm build:tsc",
+    "build": "pnpm clean && pnpm build:tsc && pnpm build:instructions",
     "build:tsc": "pnpm build:tsc:esm && pnpm build:tsc:cjs",
     "build:tsc:esm": "tsc -p tsconfig.prod.json --module esnext --outDir dist/esm --declarationDir dist/types",
     "build:tsc:cjs": "tsc -p tsconfig.prod.json --module commonjs --outDir dist/cjs --declaration false --declarationMap false",
+    "build:instructions": "pnpm build:instructions:esm && pnpm build:instructions:cjs",
+    "build:instructions:esm": "cp src/instructions.txt dist/esm/instructions.txt",
+    "build:instructions:cjs": "cp src/instructions.txt dist/cjs/instructions.txt",
     "clean": "rimraf dist",
     "lint": "eslint src --ext .ts",
     "check": "tsc -p . --noEmit",
