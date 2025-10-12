@@ -2,7 +2,7 @@ import * as fs from 'fs'
 import { merge } from 'lodash'
 import { makeParseableTextFormat } from 'openai/lib/parser'
 import * as path from 'path'
-import { enumerateBatches } from 'ytil'
+import { generateBatches } from 'ytil'
 import { z } from 'zod'
 
 import { Bundle } from './Bundle'
@@ -28,7 +28,7 @@ export class Translator {
     const patch = new Patch()
     
     if (batchSize != null) {
-      for (const batch of enumerateBatches(keys, batchSize)) {
+      for (const batch of generateBatches(keys, batchSize)) {
         await this.translateBatch(batch, patch, options)
       }
     } else {
