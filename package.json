@@ -38,8 +38,8 @@
     "openai": "^5.19.1",
     "tiktoken": "^1.0.22",
     "yaml": "^2.8.1",
-    "ytil": "workspace:*",
+    "ytil": "workspace:^",
     "zod": "^4.1.5",
-    "zodenv": "workspace:*"
+    "zodenv": "workspace:^"
   }
 }
