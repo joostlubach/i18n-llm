@@ -43,7 +43,7 @@ export class Translator {
       purpose,
       notes,
       modifyStream,
-      dryrun = false
+      dryrun = false,
     } = options
 
     if (keys.length === 0) {
@@ -70,8 +70,8 @@ export class Translator {
         input,
 
         text: {
-          format: responseFormat
-        }
+          format: responseFormat,
+        },
       }, modelParameters))
 
       modifyStream?.(stream)
@@ -86,7 +86,7 @@ export class Translator {
 
   private buildInstructions(
     purpose: string | undefined,
-    notes: string[] | undefined
+    notes: string[] | undefined,
   ) {
     return INSTRUCTIONS
       .replace('##SOURCELANG##', this.source.language.name)
@@ -120,26 +120,26 @@ export class Translator {
 
 const responseSchema = z.object({
   translations: z.array(z.object({
-    key: z.string(),
+    key:         z.string(),
     translation: z.string(),
-  }))
+  })),
 })
 const responseFormat = makeParseableTextFormat({
-    name: 'translations',
-    type: 'json_schema',
-    schema: z.toJSONSchema(responseSchema),
-    strict: true,
-  },
-  (content) => responseSchema.parse(JSON.parse(content)),
+  name:   'translations',
+  type:   'json_schema',
+  schema: z.toJSONSchema(responseSchema),
+  strict: true,
+},
+(content) => responseSchema.parse(JSON.parse(content)),
 )
 
 export interface TranslateOptions {
   keys?: string[]
 
   purpose?: string
-  notes?: string[] | PerLanguage<string[]>
+  notes?:   string[] | PerLanguage<string[]>
 
-  batchSize?: number
+  batchSize?:    number
   modifyStream?: (stream: ResponseStream) => void
 
   dryrun?: boolean

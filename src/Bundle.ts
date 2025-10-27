@@ -218,8 +218,8 @@ export class Bundle {
 
 export interface TranslateFromOptions extends Omit<TranslateOptions, 'keys'> {
   incremental?: boolean
-  filter?: RegExp
+  filter?:      RegExp
   
-  onPreApply?: (bundle: Bundle, patch: Patch) => void
+  onPreApply?:  (bundle: Bundle, patch: Patch) => void
   onPostApply?: (bundle: Bundle, patch: Patch) => void
 }

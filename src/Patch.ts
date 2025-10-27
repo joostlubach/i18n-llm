@@ -34,8 +34,8 @@ export class Patch {
   public apply(bundle: Bundle, source?: Bundle) {
     for (const mod of this._modifications) {
       switch (mod.type) {
-        case 'set': this.executeSet(bundle, mod, source); break
-        case 'remove': this.executeRemove(bundle, mod); break
+      case 'set': this.executeSet(bundle, mod, source); break
+      case 'remove': this.executeRemove(bundle, mod); break
       }
     }
   }
@@ -71,12 +71,12 @@ export class Patch {
   public dump(stream: NodeJS.WritableStream = process.stdout, formatLine: (line: string) => string = line => line) {
     for (const mod of this._modifications) {
       switch (mod.type) {
-        case 'set':
-          stream.write(formatLine(`~ ${mod.key} = ${JSON.stringify(mod.value)}`))
-          break
-        case 'remove':
-          stream.write(formatLine(`- ${mod.key}`))
-          break
+      case 'set':
+        stream.write(formatLine(`~ ${mod.key} = ${JSON.stringify(mod.value)}`))
+        break
+      case 'remove':
+        stream.write(formatLine(`- ${mod.key}`))
+        break
       }
     }
   }
@@ -86,21 +86,21 @@ export class Patch {
 export type Modification = SetModification | TranslateModification | RemoveModification
 
 export interface SetModification {
-  type: 'set'
-  key: string
+  type:  'set'
+  key:   string
   value: Translation
 }
 
 export interface TranslateModification {
   type: 'translate'
-  key: string
+  key:  string
   from: {
     language: LanguageCode
-    value: Translation
+    value:    Translation
   }
 }
 
 export interface RemoveModification {
   type: 'remove'
-  key: string
+  key:  string
 }

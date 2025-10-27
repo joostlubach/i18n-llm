@@ -23,15 +23,18 @@
     "build:instructions:esm": "cp src/instructions.txt dist/esm/instructions.txt",
     "build:instructions:cjs": "cp src/instructions.txt dist/cjs/instructions.txt",
     "clean": "rimraf dist",
-    "lint": "eslint",
+    "lint": "eslint src",
     "check": "tsc -p . --noEmit",
     "test": "NODE_ENV=test jest"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.20",
+    "@typescript-eslint/eslint-plugin": "^8.46.2",
+    "@typescript-eslint/parser": "^8.46.2",
     "eslint": "^9.38.0",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
+    "eslint-plugin-unused-imports": "^4.3.0",
     "js-yaml": "^4.1.0",
     "rimraf": "^6.0.1",
     "typescript": "^5.8.3"

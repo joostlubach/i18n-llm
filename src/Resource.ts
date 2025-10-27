@@ -21,7 +21,7 @@ export class Resource {
       this.bundle,
       this.relpath,
       this.format,
-      cloneDeep(this.translations)
+      cloneDeep(this.translations),
     )
   }
 

@@ -24,7 +24,7 @@ export const languages = [
   {code: 'cs', name: 'Czech', local_name: 'Čeština'},
   {code: 'hu', name: 'Hungarian', local_name: 'Magyar'},
   {code: 'ro', name: 'Romanian', local_name: 'Română'},
-  {code: 'el', name: 'Greek', local_name: 'Ελληνικά'}
+  {code: 'el', name: 'Greek', local_name: 'Ελληνικά'},
 ] as const
 
 export type Language = (typeof languages)[number]
