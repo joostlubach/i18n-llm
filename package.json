@@ -17,7 +17,7 @@
   "scripts": {
     "build": "npm run clean && npm run build:tsc && npm run build:instructions",
     "build:tsc": "npm run build:tsc:esm && npm run build:tsc:cjs",
-    "build:tsc:esm": "tsc -p tsconfig.prod.json --module esnext --outDir dist/esm --declarationDir dist/types",
+    "build:tsc:esm": "tsc -p tsconfig.prod.json --module es2022 --outDir dist/esm --declarationDir dist/types",
     "build:tsc:cjs": "tsc -p tsconfig.prod.json --module commonjs --outDir dist/cjs --declaration false --declarationMap false",
     "build:instructions": "npm run build:instructions:esm && npm run build:instructions:cjs",
     "build:instructions:esm": "cp src/instructions.txt dist/esm/instructions.txt",
